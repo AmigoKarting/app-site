@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getServerDictionary } from "@/lib/i18n/server";
 import { listActiveChecklistTasks } from "@/domain/checklists/tasks-repository";
 import { notify } from "@/lib/messaging";
+import { getTodayStartUTC } from "@/lib/date-utils";
 
 const bodySchema = z.object({
   taskKey: z.string().min(1),
@@ -51,8 +52,7 @@ export async function POST(request: NextRequest) {
 
   const supabase = createAdminClient();
   const t = getServerDictionary();
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
+  const todayStart = getTodayStartUTC();
   const now = new Date().toISOString();
 
   // Récupérer ou créer la checklist du jour

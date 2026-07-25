@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getTodayDateString } from "@/lib/date-utils";
 
 const bodySchema = z.object({
   operatorName: z.string().min(1),
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
   if (!operator) return NextResponse.json({ error: "Missing operator" }, { status: 400 });
 
   const supabase = createAdminClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayDateString();
 
   const { data } = await (supabase as any)
     .from("cash_reconciliations")
@@ -50,7 +51,7 @@ export async function POST(request: NextRequest) {
   const { operatorName, cashCounted, interacCounted, cashApex, interacApex, explanation } = parsed.data;
 
   const supabase = createAdminClient();
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayDateString();
 
   const { error } = await (supabase as any)
     .from("cash_reconciliations")

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getTodayStartUTC } from "@/lib/date-utils";
 
 export interface TodayChecklistData {
   completedItems: string[];
@@ -11,14 +12,12 @@ export interface TodayChecklistData {
 
 export async function getTodayCompleted(userId: string): Promise<TodayChecklistData> {
   const supabase = createClient();
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
 
   const { data } = await (supabase as any)
     .from("cashier_checklists")
     .select("completed_items, completed_timestamps, operator_name")
     .eq("user_id", userId)
-    .gte("submitted_at", todayStart.toISOString())
+    .gte("submitted_at", getTodayStartUTC().toISOString())
     .order("submitted_at", { ascending: false })
     .limit(1)
     .maybeSingle();
