@@ -66,6 +66,12 @@ export default async function ChecklistHistoryPage() {
         <span className="flex-1 rounded-md bg-white px-3 py-2 text-center text-sm font-semibold text-neutral-900 shadow-sm dark:bg-neutral-700 dark:text-neutral-100">
           {t.checklist.adminTitle}
         </span>
+        <Link
+          href="/cloture-history"
+          className="flex-1 rounded-md px-3 py-2 text-center text-sm font-medium text-neutral-500 transition hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+        >
+          Clôtures
+        </Link>
       </div>
 
       {checklists.length === 0 ? (

@@ -43,6 +43,12 @@ export default async function SupervisorHistoryPage() {
         >
           {t.checklist.adminTitle}
         </Link>
+        <Link
+          href="/cloture-history"
+          className="flex-1 rounded-md px-3 py-2 text-center text-sm font-medium text-neutral-500 transition hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+        >
+          Clôtures
+        </Link>
       </div>
 
       {supervisorHistory.length === 0 ? (
