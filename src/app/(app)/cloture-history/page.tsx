@@ -186,8 +186,8 @@ export default async function ClotureHistoryPage() {
                         </table>
 
                         {rec.explanation && (
-                          <div className="mt-2 rounded-lg bg-neutral-50 px-3 py-2 dark:bg-neutral-900/50">
-                            <p className="text-xs text-neutral-600 dark:text-neutral-400">
+                          <div className="mt-3 rounded-lg bg-amber-50 px-4 py-3 dark:bg-amber-900/20">
+                            <p className="text-sm text-amber-900 dark:text-amber-200">
                               📝 {rec.explanation}
                             </p>
                           </div>
