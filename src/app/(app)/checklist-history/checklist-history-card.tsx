@@ -108,21 +108,11 @@ export function ChecklistHistoryCard({
 
         {!isSupervisor && (
           <div className="mt-2 pl-5">
-            {cashReconciliation ? (() => {
-              const c = (v: number | null) => v ?? 0;
-              const diff = (c(cashReconciliation.cashCounted) + c(cashReconciliation.interacCounted))
-                - (c(cashReconciliation.cashApex) + c(cashReconciliation.interacApex));
-              const isOk = diff === 0;
-              return (
-                <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${
-                  isOk
-                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
-                }`}>
-                  💰 {isOk ? "Caisse OK" : `Diff: ${diff >= 0 ? "+" : ""}${diff.toFixed(2)} $`}
-                </span>
-              );
-            })() : (
+            {cashReconciliation ? (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                💰 Clôture faite
+              </span>
+            ) : (
               <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400">
                 💰 Pas de clôture
               </span>
