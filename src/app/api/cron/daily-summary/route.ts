@@ -52,6 +52,7 @@ async function handle(request: Request) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
+
   const supabase = createAdminClient();
   const todayStart = getTodayStartUTC();
   const todayDate = getTodayDateString();

@@ -20,7 +20,7 @@ export class EmailChannel implements NotificationChannel {
   /** Sélection paresseuse: l'env peut changer entre tests. */
   private getProvider(): EmailProvider {
     if (this.providerCache) return this.providerCache;
-    const requested = (process.env.EMAIL_PROVIDER ?? "mock").toLowerCase();
+    const requested = (process.env.EMAIL_PROVIDER ?? "mock").replace(/^﻿/, "").trim().toLowerCase();
     let provider: EmailProvider;
     switch (requested) {
       case "resend": {

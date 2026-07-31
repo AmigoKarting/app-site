@@ -10,12 +10,16 @@ export class ResendEmailProvider implements EmailProvider {
   readonly id = "resend";
 
   isConfigured(): boolean {
-    return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+    return Boolean(this.clean(process.env.RESEND_API_KEY) && this.clean(process.env.EMAIL_FROM));
+  }
+
+  private clean(v: string | undefined): string | undefined {
+    return v?.replace(/^﻿/, "").trim();
   }
 
   async send(to: string, message: Message): Promise<SendOutcome> {
-    const apiKey = process.env.RESEND_API_KEY;
-    const from = process.env.EMAIL_FROM;
+    const apiKey = this.clean(process.env.RESEND_API_KEY);
+    const from = this.clean(process.env.EMAIL_FROM);
     if (!apiKey || !from) {
       throw new Error("Resend non configuré (RESEND_API_KEY / EMAIL_FROM manquants)");
     }
