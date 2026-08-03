@@ -518,7 +518,7 @@ export function ChecklistForm({
         </ul>
       </div>
       {/* Meeting notes — supervisors only */}
-      {isSupervisor && activeSection === "meeting" && activeItems.some((i) => states[i.key]?.sent) && (
+      {isSupervisor && activeSection === "meeting" && activeItems.some((i) => states[i.key]?.checked || states[i.key]?.sent) && (
         <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-800/50">
           <div className="mb-2 flex items-center justify-between">
             <h3 className="text-sm font-bold text-neutral-800 dark:text-neutral-200">
