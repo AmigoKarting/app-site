@@ -18,10 +18,7 @@ function getMontrealDate(): { month: number; day: number; dayOfWeek: number } {
   return { month: m, day: d, dayOfWeek: new Date(y, m - 1, d).getDay() };
 }
 
-export function getTodayOpenHours(): OpenHours | null {
-  const { month, day, dayOfWeek } = getMontrealDate();
-  const md = month * 100 + day;
-
+function resolveHours(md: number, dayOfWeek: number): OpenHours | null {
   if (md >= 412 && md <= 518) {
     if (dayOfWeek === 5) return { open: 18, close: 22, totalHours: 4 };
     if (dayOfWeek === 6) return { open: 11, close: 22, totalHours: 11 };
@@ -47,4 +44,16 @@ export function getTodayOpenHours(): OpenHours | null {
   }
 
   return null;
+}
+
+export function getOpenHoursForDate(date: Date): OpenHours | null {
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const dayOfWeek = date.getDay();
+  return resolveHours(month * 100 + day, dayOfWeek);
+}
+
+export function getTodayOpenHours(): OpenHours | null {
+  const { month, day, dayOfWeek } = getMontrealDate();
+  return resolveHours(month * 100 + day, dayOfWeek);
 }

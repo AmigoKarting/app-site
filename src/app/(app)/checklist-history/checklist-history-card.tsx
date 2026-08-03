@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, formatDateTime } from "@/components/ui";
+import { Card } from "@/components/ui";
 
 interface TaskInfo {
   task_key: string;
@@ -13,8 +13,24 @@ interface SectionStat {
   label: string;
   icon: string;
   total: number;
-  done: TaskInfo[];
-  missed: TaskInfo[];
+  tasks: Array<{
+    task_key: string;
+    label: string;
+    completions: Array<{ operator: string; time: string }>;
+    totalCount: number;
+  }>;
+}
+
+interface PersonSummary {
+  name: string;
+  isSupervisor: boolean;
+  completed: number;
+  total: number;
+  pct: number;
+  accountName: string;
+  showAccount: boolean;
+  notes: string | null;
+  cashRec: CashReconciliationData | null;
 }
 
 export interface CashReconciliationData {
@@ -26,20 +42,10 @@ export interface CashReconciliationData {
 }
 
 interface Props {
-  id: string;
-  operatorName: string;
-  accountName: string;
-  showAccount: boolean;
-  isSupervisor: boolean;
-  completedForRole: number;
-  totalForRole: number;
-  pct: number;
-  submittedAt: string;
-  dateFmt: string;
+  dateLabel: string;
+  hoursLabel: string;
+  persons: PersonSummary[];
   sections: SectionStat[];
-  timestamps: Record<string, string | string[]>;
-  notes: string | null;
-  cashReconciliation?: CashReconciliationData | null;
 }
 
 function formatTime(ts: string): string {
@@ -51,12 +57,24 @@ function formatTime(ts: string): string {
   }
 }
 
-export function ChecklistHistoryCard({
-  id, operatorName, accountName, showAccount, isSupervisor,
-  completedForRole, totalForRole, pct, submittedAt, dateFmt,
-  sections, timestamps, notes, cashReconciliation,
-}: Props) {
+function pctColor(pct: number) {
+  if (pct === 100) return "text-emerald-600 dark:text-emerald-400";
+  if (pct >= 70) return "text-amber-600 dark:text-amber-400";
+  return "text-red-600 dark:text-red-400";
+}
+
+function barColor(pct: number) {
+  if (pct === 100) return "bg-emerald-500";
+  if (pct >= 70) return "bg-amber-500";
+  return "bg-red-500";
+}
+
+export function DayHistoryCard({ dateLabel, hoursLabel, persons, sections }: Props) {
   const [open, setOpen] = useState(false);
+
+  const totalCompleted = persons.reduce((s, p) => s + p.completed, 0);
+  const totalTasks = persons.reduce((s, p) => s + p.total, 0);
+  const overallPct = totalTasks > 0 ? Math.round((totalCompleted / totalTasks) * 100) : 0;
 
   return (
     <Card className="overflow-hidden">
@@ -79,114 +97,115 @@ export function ChecklistHistoryCard({
             >
               <polyline points="9 18 15 12 9 6" />
             </svg>
-            <p className="font-semibold text-neutral-900 dark:text-neutral-100">
-              {operatorName}
+            <p className="text-base font-bold capitalize text-neutral-900 dark:text-neutral-100">
+              {dateLabel}
             </p>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
-              isSupervisor
-                ? "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300"
-                : "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300"
-            }`}>
-              {isSupervisor ? "Superviseur" : "Caissiere"}
-            </span>
           </div>
-          <span className={`text-sm font-bold ${
-            pct === 100
-              ? "text-emerald-600 dark:text-emerald-400"
-              : pct >= 70
-                ? "text-amber-600 dark:text-amber-400"
-                : "text-red-600 dark:text-red-400"
-          }`}>
-            {completedForRole}/{totalForRole}
+          <span className={`text-sm font-bold ${pctColor(overallPct)}`}>
+            {totalCompleted}/{totalTasks}
           </span>
         </div>
 
-        <p className="mt-1 pl-5 text-xs text-neutral-500 dark:text-neutral-400">
-          {formatDateTime(submittedAt, dateFmt)}
-          {showAccount && <span> · Compte: {accountName}</span>}
-        </p>
-
-        {!isSupervisor && (
-          <div className="mt-2 pl-5">
-            {cashReconciliation ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                💰 Clôture faite
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-semibold text-neutral-500 dark:bg-neutral-700 dark:text-neutral-400">
-                💰 Pas de clôture
-              </span>
-            )}
-          </div>
+        {hoursLabel && (
+          <p className="mt-0.5 pl-5 text-xs text-neutral-400">{hoursLabel}</p>
         )}
 
-        <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
-          <div
-            className={`h-full rounded-full ${
-              pct === 100 ? "bg-emerald-500" : pct >= 70 ? "bg-amber-500" : "bg-red-500"
-            }`}
-            style={{ width: `${pct}%` }}
-          />
+        <div className="mt-2.5 space-y-2 pl-5">
+          {persons.map((p) => (
+            <div key={p.name}>
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-semibold text-neutral-800 dark:text-neutral-200">{p.name}</span>
+                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                    p.isSupervisor
+                      ? "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300"
+                      : "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300"
+                  }`}>
+                    {p.isSupervisor ? "Superviseur" : "Caissière"}
+                  </span>
+                  {p.showAccount && (
+                    <span className="text-[10px] text-neutral-400">({p.accountName})</span>
+                  )}
+                </div>
+                <span className={`text-xs font-bold ${pctColor(p.pct)}`}>{p.completed}/{p.total}</span>
+              </div>
+              <div className="mt-1 h-1 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
+                <div className={`h-full rounded-full ${barColor(p.pct)}`} style={{ width: `${p.pct}%` }} />
+              </div>
+            </div>
+          ))}
         </div>
       </button>
 
       {open && (
         <div className="border-t border-neutral-100 px-4 pb-4 pt-3 dark:border-neutral-800">
-          <div className="space-y-3">
-            {sections.map((sec) => (
-              <div key={sec.section}>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
-                    {sec.icon} {sec.label}
-                  </span>
-                  <span className={`text-xs font-semibold ${
-                    sec.done.length === sec.total
-                      ? "text-emerald-600 dark:text-emerald-400"
-                      : "text-neutral-500"
-                  }`}>
-                    {sec.done.length}/{sec.total}
-                  </span>
-                </div>
+          <div className="space-y-4">
+            {sections.map((sec) => {
+              const doneCount = sec.tasks.filter((t) => t.totalCount > 0).length;
+              return (
+                <div key={sec.section}>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-600 dark:text-neutral-400">
+                      {sec.icon} {sec.label}
+                    </span>
+                    <span className={`text-xs font-semibold ${
+                      doneCount === sec.total
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-neutral-500"
+                    }`}>
+                      {doneCount}/{sec.total}
+                    </span>
+                  </div>
 
-                <div className="mt-1 space-y-0.5 pl-5">
-                  {sec.done.map((task) => {
-                    const ts = timestamps[task.task_key];
-                    const timeStr = typeof ts === "string" ? formatTime(ts) : Array.isArray(ts) && ts.length > 0 ? formatTime(ts[ts.length - 1]) : "";
-                    return (
-                      <div key={task.task_key} className="flex items-center justify-between text-xs">
-                        <span className="text-neutral-700 dark:text-neutral-300">
-                          ✓ {task.label}
-                          {Array.isArray(ts) && ts.length > 1 && (
-                            <span className="ml-1 text-emerald-600 dark:text-emerald-400">×{ts.length}</span>
-                          )}
-                        </span>
-                        {timeStr && (
-                          <span className="ml-2 shrink-0 text-neutral-400">{timeStr}</span>
+                  <div className="mt-1 space-y-1 pl-5">
+                    {sec.tasks.map((task) => (
+                      <div key={task.task_key}>
+                        {task.totalCount > 0 ? (
+                          <div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-neutral-700 dark:text-neutral-300">
+                                ✓ {task.label}
+                                {sec.section === "during" && task.totalCount > 1 && (
+                                  <span className="ml-1 font-semibold text-emerald-600 dark:text-emerald-400">×{task.totalCount}</span>
+                                )}
+                              </span>
+                            </div>
+                            <div className="mt-0.5 space-y-0 pl-3">
+                              {task.completions.map((c, i) => (
+                                <p key={i} className="text-[11px] text-neutral-400">
+                                  {c.operator}{c.time ? ` à ${c.time}` : ""}
+                                  {sec.section === "during" && task.completions.length > 1 && i < task.completions.length && ""}
+                                </p>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                            ✗ {task.label}
+                          </p>
                         )}
                       </div>
-                    );
-                  })}
-                  {sec.missed.map((task) => (
-                    <p key={task.task_key} className="text-xs text-neutral-400 dark:text-neutral-500">
-                      ✗ {task.label}
-                    </p>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          {notes && (
-            <div className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+          {persons.filter((p) => p.notes).map((p) => (
+            <div key={p.name} className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                💬 {notes}
+                💬 {p.name}: {p.notes}
               </p>
             </div>
-          )}
+          ))}
 
-          {cashReconciliation && (
-            <CashReconciliationView data={cashReconciliation} />
-          )}
+          {persons.filter((p) => p.cashRec).map((p) => (
+            <div key={p.name} className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
+              <p className="mb-2 text-xs font-bold text-neutral-700 dark:text-neutral-300">💰 Clôture — {p.name}</p>
+              <CashReconciliationView data={p.cashRec!} />
+            </div>
+          ))}
         </div>
       )}
     </Card>
@@ -204,8 +223,7 @@ function CashReconciliationView({ data }: { data: CashReconciliationData }) {
   const diffColor = (n: number) => n === 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400";
 
   return (
-    <div className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
-      <p className="mb-2 text-xs font-bold text-neutral-700 dark:text-neutral-300">💰 Clôture de caisse</p>
+    <>
       <table className="w-full text-xs">
         <thead>
           <tr className="text-neutral-400">
@@ -239,6 +257,6 @@ function CashReconciliationView({ data }: { data: CashReconciliationData }) {
       {data.explanation && (
         <p className="mt-1.5 text-xs text-neutral-500 dark:text-neutral-400">📝 {data.explanation}</p>
       )}
-    </div>
+    </>
   );
 }
