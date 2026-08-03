@@ -148,21 +148,16 @@ export default async function ChecklistHistoryPage() {
           }
         }
 
-        if (sec === "during" && hours && totalCount > 0) {
-          const intervalStr = formatInterval(hours.totalHours, totalCount);
-          return {
-            task_key: task.task_key,
-            label: `${task.label}${intervalStr ? ` (${intervalStr})` : ""}`,
-            completions,
-            totalCount,
-          };
-        }
+        const intervalLabel = (sec === "during" && hours && totalCount > 0)
+          ? formatInterval(hours.totalHours, totalCount)
+          : "";
 
         return {
           task_key: task.task_key,
           label: task.label,
           completions,
           totalCount,
+          intervalLabel,
         };
       });
 
@@ -183,6 +178,7 @@ export default async function ChecklistHistoryPage() {
         label: string;
         completions: Array<{ operator: string; time: string }>;
         totalCount: number;
+        intervalLabel: string;
       }>;
     }>;
 

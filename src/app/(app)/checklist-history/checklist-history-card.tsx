@@ -3,11 +3,6 @@
 import { useState } from "react";
 import { Card } from "@/components/ui";
 
-interface TaskInfo {
-  task_key: string;
-  label: string;
-}
-
 interface SectionStat {
   section: string;
   label: string;
@@ -18,6 +13,7 @@ interface SectionStat {
     label: string;
     completions: Array<{ operator: string; time: string }>;
     totalCount: number;
+    intervalLabel: string;
   }>;
 }
 
@@ -48,19 +44,10 @@ interface Props {
   sections: SectionStat[];
 }
 
-function formatTime(ts: string): string {
-  try {
-    const d = new Date(ts);
-    return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "America/Montreal" });
-  } catch {
-    return "";
-  }
-}
-
 function pctColor(pct: number) {
   if (pct === 100) return "text-emerald-600 dark:text-emerald-400";
   if (pct >= 70) return "text-amber-600 dark:text-amber-400";
-  return "text-red-600 dark:text-red-400";
+  return "text-red-500 dark:text-red-400";
 }
 
 function barColor(pct: number) {
@@ -157,30 +144,35 @@ export function DayHistoryCard({ dateLabel, hoursLabel, persons, sections }: Pro
                     </span>
                   </div>
 
-                  <div className="mt-1 space-y-1 pl-5">
+                  <div className="mt-1.5 space-y-1.5 pl-4">
                     {sec.tasks.map((task) => (
                       <div key={task.task_key}>
                         {task.totalCount > 0 ? (
                           <div>
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-neutral-700 dark:text-neutral-300">
+                            <div className="flex items-start justify-between gap-2">
+                              <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
                                 ✓ {task.label}
-                                {sec.section === "during" && task.totalCount > 1 && (
-                                  <span className="ml-1 font-semibold text-emerald-600 dark:text-emerald-400">×{task.totalCount}</span>
-                                )}
                               </span>
+                              {sec.section === "during" && (
+                                <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                                  ×{task.totalCount}
+                                  {task.intervalLabel && (
+                                    <span className="ml-1 font-normal opacity-80">{task.intervalLabel}</span>
+                                  )}
+                                </span>
+                              )}
                             </div>
-                            <div className="mt-0.5 space-y-0 pl-3">
+                            <div className="mt-0.5 space-y-0 pl-4">
                               {task.completions.map((c, i) => (
-                                <p key={i} className="text-[11px] text-neutral-400">
-                                  {c.operator}{c.time ? ` à ${c.time}` : ""}
-                                  {sec.section === "during" && task.completions.length > 1 && i < task.completions.length && ""}
+                                <p key={i} className="text-xs text-neutral-600 dark:text-neutral-300">
+                                  <span className="font-semibold">{c.operator}</span>
+                                  {c.time && <span className="ml-1 text-neutral-400 dark:text-neutral-500">à {c.time}</span>}
                                 </p>
                               ))}
                             </div>
                           </div>
                         ) : (
-                          <p className="text-xs text-neutral-400 dark:text-neutral-500">
+                          <p className="text-xs font-medium text-red-500 dark:text-red-400">
                             ✗ {task.label}
                           </p>
                         )}
@@ -195,7 +187,7 @@ export function DayHistoryCard({ dateLabel, hoursLabel, persons, sections }: Pro
           {persons.filter((p) => p.notes).map((p) => (
             <div key={p.name} className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
               <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                💬 {p.name}: {p.notes}
+                💬 <span className="font-semibold">{p.name}:</span> {p.notes}
               </p>
             </div>
           ))}
