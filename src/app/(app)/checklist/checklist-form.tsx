@@ -192,31 +192,42 @@ export function ChecklistForm({
       const current = statesRef.current[taskKey];
       if (!current || current.sent || current.sending) return;
 
+      const task = tasks.find((t) => t.key === taskKey);
+      const isMeeting = task?.section === "meeting";
+
       if (!current.checked) {
-        setStates((prev) => ({
-          ...prev,
-          [taskKey]: { ...prev[taskKey], checked: true, countdown: SEND_DELAY },
-        }));
+        if (isMeeting) {
+          setStates((prev) => ({
+            ...prev,
+            [taskKey]: { ...prev[taskKey], checked: true, countdown: null },
+          }));
+          sendTask(taskKey);
+        } else {
+          setStates((prev) => ({
+            ...prev,
+            [taskKey]: { ...prev[taskKey], checked: true, countdown: SEND_DELAY },
+          }));
 
-        const interval = setInterval(() => {
-          setStates((s) => {
-            const st = s[taskKey];
-            if (!st || st.countdown === null) {
-              clearInterval(timersRef.current[taskKey]);
-              delete timersRef.current[taskKey];
-              return s;
-            }
-            if (st.countdown <= 1) {
-              clearInterval(timersRef.current[taskKey]);
-              delete timersRef.current[taskKey];
-              sendTask(taskKey);
-              return { ...s, [taskKey]: { ...st, countdown: null } };
-            }
-            return { ...s, [taskKey]: { ...st, countdown: st.countdown - 1 } };
-          });
-        }, 1000);
+          const interval = setInterval(() => {
+            setStates((s) => {
+              const st = s[taskKey];
+              if (!st || st.countdown === null) {
+                clearInterval(timersRef.current[taskKey]);
+                delete timersRef.current[taskKey];
+                return s;
+              }
+              if (st.countdown <= 1) {
+                clearInterval(timersRef.current[taskKey]);
+                delete timersRef.current[taskKey];
+                sendTask(taskKey);
+                return { ...s, [taskKey]: { ...st, countdown: null } };
+              }
+              return { ...s, [taskKey]: { ...st, countdown: st.countdown - 1 } };
+            });
+          }, 1000);
 
-        timersRef.current[taskKey] = interval;
+          timersRef.current[taskKey] = interval;
+        }
       } else {
         if (timersRef.current[taskKey]) {
           clearInterval(timersRef.current[taskKey]);
