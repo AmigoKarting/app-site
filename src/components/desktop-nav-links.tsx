@@ -30,7 +30,7 @@ export function DesktopNavLinks({ role }: DesktopNavLinksProps) {
       {(isGerant || isDev) && (
         <NavLink href="/supervisor" label={t.supervisor.navTitle} active={pathname === "/supervisor"} />
       )}
-      {(isGerant || isDev) && (
+      {isDev && (
         <NavLink href="/supervisor-history" label={t.checklist.historyShort} active={pathname === "/supervisor-history"} />
       )}
       {isDev && (
