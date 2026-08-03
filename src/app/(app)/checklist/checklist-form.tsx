@@ -201,7 +201,6 @@ export function ChecklistForm({
             ...prev,
             [taskKey]: { ...prev[taskKey], checked: true, countdown: null },
           }));
-          sendTask(taskKey);
         } else {
           setStates((prev) => ({
             ...prev,
@@ -271,11 +270,13 @@ export function ChecklistForm({
       });
       if (res.ok) {
         setMeetingNotesSaved(true);
+        const meetingTask = tasks.find((t) => t.section === "meeting");
+        if (meetingTask) await sendTask(meetingTask.key);
         if (navigator.vibrate) navigator.vibrate(30);
       }
     } catch { /* ignore */ }
     setMeetingNotesSaving(false);
-  }, [meetingNotes]);
+  }, [meetingNotes, tasks, sendTask]);
 
   const [activeSection, setActiveSection] = useState<"opening" | "during" | "closing" | "free_time" | "meeting">(() => {
     const h = new Date().getHours();
