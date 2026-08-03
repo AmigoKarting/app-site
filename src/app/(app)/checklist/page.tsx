@@ -25,7 +25,7 @@ export default async function ChecklistPage() {
     redirect("/feed");
   }
 
-  const targetRole = isSupervisor ? "superviseur" : "caissiere";
+  const targetRole = isSupervisor || isDev ? "superviseur" : "caissiere";
 
   const [todayData, allTasks, streak, cashiers, recyclingToday] = await Promise.all([
     getTodayCompleted(user.id),
