@@ -5,7 +5,7 @@ import { useTranslation } from "@/lib/i18n";
 
 export interface ChecklistTaskProps {
   key: string;
-  section: "opening" | "during" | "closing" | "free_time";
+  section: "opening" | "during" | "closing" | "free_time" | "meeting";
   label: string;
 }
 
@@ -236,6 +236,7 @@ export function ChecklistForm({
         { id: "opening" as const, label: t.checklist.sectionOpening, icon: "🌅" },
         { id: "during" as const, label: "20h", icon: "🕗" },
         { id: "closing" as const, label: "22h", icon: "🌙" },
+        { id: "meeting" as const, label: "Réunion", icon: "🤝" },
       ]
     : [
         { id: "opening" as const, label: t.checklist.sectionOpening, icon: "🌅" },
@@ -244,7 +245,28 @@ export function ChecklistForm({
         { id: "free_time" as const, label: t.checklist.sectionFreeTime, icon: "🧹" },
       ];
 
-  const [activeSection, setActiveSection] = useState<"opening" | "during" | "closing" | "free_time">(() => {
+  const [meetingNotes, setMeetingNotes] = useState("");
+  const [meetingNotesSaved, setMeetingNotesSaved] = useState(false);
+  const [meetingNotesSaving, setMeetingNotesSaving] = useState(false);
+
+  const saveMeetingNotes = useCallback(async () => {
+    if (!meetingNotes.trim()) return;
+    setMeetingNotesSaving(true);
+    try {
+      const res = await fetch("/api/checklist/meeting-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: meetingNotes.trim() }),
+      });
+      if (res.ok) {
+        setMeetingNotesSaved(true);
+        if (navigator.vibrate) navigator.vibrate(30);
+      }
+    } catch { /* ignore */ }
+    setMeetingNotesSaving(false);
+  }, [meetingNotes]);
+
+  const [activeSection, setActiveSection] = useState<"opening" | "during" | "closing" | "free_time" | "meeting">(() => {
     const h = new Date().getHours();
     if (isSupervisor) {
       if (h < 20) return "opening";
@@ -495,6 +517,38 @@ export function ChecklistForm({
           })}
         </ul>
       </div>
+      {/* Meeting notes — supervisors only */}
+      {isSupervisor && activeSection === "meeting" && activeItems.some((i) => states[i.key]?.sent) && (
+        <div className="rounded-xl border border-neutral-200 bg-white p-4 dark:border-neutral-700 dark:bg-neutral-800/50">
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-sm font-bold text-neutral-800 dark:text-neutral-200">
+              📝 Notes de réunion
+            </h3>
+            {meetingNotesSaved && !meetingNotesSaving && (
+              <span className="text-xs text-emerald-500">✓ Envoyé</span>
+            )}
+          </div>
+          <textarea
+            value={meetingNotes}
+            onChange={(e) => { setMeetingNotes(e.target.value); setMeetingNotesSaved(false); }}
+            placeholder="De quoi avez-vous parlé pendant la réunion ?"
+            rows={4}
+            disabled={meetingNotesSaved}
+            className="w-full rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:ring-1 focus:ring-brand-500 disabled:opacity-60 dark:border-neutral-600 dark:bg-neutral-800 dark:text-neutral-100"
+          />
+          {!meetingNotesSaved && (
+            <button
+              type="button"
+              onClick={saveMeetingNotes}
+              disabled={meetingNotesSaving || !meetingNotes.trim()}
+              className="mt-2 w-full rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-brand-700 disabled:opacity-50 active:scale-[0.98]"
+            >
+              {meetingNotesSaving ? "Envoi..." : "Envoyer les notes"}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Cash reconciliation form — cashiers only */}
       {!isSupervisor && selectedOperator && (
         <CashReconciliation operatorName={selectedOperator} />

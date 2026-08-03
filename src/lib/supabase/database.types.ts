@@ -562,7 +562,7 @@ export interface Database {
         Row: {
           id: string;
           task_key: string;
-          section: "opening" | "during" | "closing" | "free_time";
+          section: "opening" | "during" | "closing" | "free_time" | "meeting";
           label: string;
           sort_order: number;
           is_active: boolean;
@@ -573,7 +573,7 @@ export interface Database {
         Insert: {
           id?: string;
           task_key: string;
-          section: "opening" | "during" | "closing" | "free_time";
+          section: "opening" | "during" | "closing" | "free_time" | "meeting";
           label: string;
           sort_order?: number;
           is_active?: boolean;

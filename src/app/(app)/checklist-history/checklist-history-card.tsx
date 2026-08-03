@@ -186,8 +186,9 @@ export function DayHistoryCard({ dateLabel, hoursLabel, persons, sections }: Pro
 
           {persons.filter((p) => p.notes).map((p) => (
             <div key={p.name} className="mt-3 border-t border-neutral-100 pt-3 dark:border-neutral-800">
-              <p className="text-xs text-neutral-500 dark:text-neutral-400">
-                💬 <span className="font-semibold">{p.name}:</span> {p.notes}
+              <p className="mb-1 text-xs font-bold text-neutral-600 dark:text-neutral-400">📝 Notes de réunion — {p.name}</p>
+              <p className="whitespace-pre-wrap rounded-lg bg-neutral-50 px-3 py-2 text-xs text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300">
+                {p.notes}
               </p>
             </div>
           ))}

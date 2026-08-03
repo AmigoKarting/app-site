@@ -13,13 +13,14 @@ import type { CashReconciliationData } from "./checklist-history-card";
 
 export const dynamic = "force-dynamic";
 
-const SECTION_ORDER = ["opening", "during", "closing", "free_time"];
+const SECTION_ORDER = ["opening", "during", "closing", "free_time", "meeting"];
 
 const SECTION_META: Record<string, { label: string; icon: string }> = {
   opening: { label: "Avant l'ouverture", icon: "🌅" },
   during: { label: "Plusieurs fois par jour", icon: "☀️" },
   closing: { label: "Avant de quitter", icon: "🌙" },
   free_time: { label: "Temps libre", icon: "🎯" },
+  meeting: { label: "Réunion d'équipe", icon: "🤝" },
 };
 
 function formatInterval(totalHours: number, count: number): string {

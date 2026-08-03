@@ -61,7 +61,7 @@ async function handle(request: Request) {
   const [{ data: checklists }, { data: tasks }, { data: cashRecs }] = await Promise.all([
     (supabase as any)
       .from("cashier_checklists")
-      .select("id, user_id, completed_items, completed_timestamps, operator_name, total_items, submitted_at")
+      .select("id, user_id, completed_items, completed_timestamps, operator_name, total_items, submitted_at, notes")
       .gte("submitted_at", todayStart.toISOString())
       .order("submitted_at", { ascending: false }),
     supabase

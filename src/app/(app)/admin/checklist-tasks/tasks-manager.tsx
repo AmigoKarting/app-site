@@ -15,7 +15,7 @@ import { useTranslation } from "@/lib/i18n";
 type Task = {
   id: string;
   task_key: string;
-  section: "opening" | "during" | "closing" | "free_time";
+  section: "opening" | "during" | "closing" | "free_time" | "meeting";
   label: string;
   sort_order: number;
   is_active: boolean;
@@ -75,6 +75,7 @@ export function TasksManager({ tasks }: Props) {
     during: t.checklist.sectionDuring,
     closing: t.checklist.sectionClosing,
     free_time: t.checklist.sectionFreeTime,
+    meeting: "Réunion d'équipe",
   };
 
   return (
@@ -99,6 +100,7 @@ export function TasksManager({ tasks }: Props) {
               <option value="during">{sectionLabels.during}</option>
               <option value="closing">{sectionLabels.closing}</option>
               <option value="free_time">{sectionLabels.free_time}</option>
+              <option value="meeting">{sectionLabels.meeting}</option>
             </SelectField>
             <SelectField label="Rôle cible" name="target_role" defaultValue="caissiere">
               <option value="caissiere">Caissière</option>
@@ -149,7 +151,7 @@ export function TasksManager({ tasks }: Props) {
             <h2 className="text-base font-bold text-neutral-800 dark:text-neutral-200">
               {role === "caissiere" ? "Caissières" : "Superviseurs"}
             </h2>
-            {(["opening", "during", "closing", "free_time"] as const).map((section) => {
+            {(["opening", "during", "closing", "free_time", "meeting"] as const).map((section) => {
               const list = roleTasks.filter((task) => task.section === section);
               if (list.length === 0) return null;
               return (

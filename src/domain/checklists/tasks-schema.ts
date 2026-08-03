@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const checklistSectionEnum = z.enum(["opening", "during", "closing", "free_time"]);
+export const checklistSectionEnum = z.enum(["opening", "during", "closing", "free_time", "meeting"]);
 
 const slugify = (s: string) =>
   s
