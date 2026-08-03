@@ -9,6 +9,16 @@ export const dynamic = "force-dynamic";
 
 const SUMMARY_EMAIL = "info@complexeamigo.com";
 
+const SECTION_META: Record<string, { label: string; icon: string }> = {
+  opening: { label: "Avant l'ouverture", icon: "🌅" },
+  during: { label: "Plusieurs fois par jour", icon: "☀️" },
+  closing: { label: "Avant de quitter", icon: "🌙" },
+  free_time: { label: "Temps libre", icon: "🎯" },
+  meeting: { label: "Réunion d'équipe", icon: "🤝" },
+};
+
+const SECTION_ORDER = ["opening", "during", "closing", "free_time", "meeting"];
+
 function authorize(request: Request): boolean {
   const secret = process.env.CRON_SECRET;
   if (!secret) return false;
@@ -25,18 +35,44 @@ function formatInterval(totalHours: number, count: number): string {
   const interval = totalHours / count;
   const h = Math.floor(interval);
   const m = Math.round((interval - h) * 60);
-  if (h === 0) return `aux ~${m}min`;
-  if (m === 0) return `aux ~${h}h`;
-  return `aux ~${h}h${String(m).padStart(2, "0")}`;
+  if (h === 0) return `~${m}min`;
+  if (m === 0) return `~${h}h`;
+  return `~${h}h${String(m).padStart(2, "0")}`;
 }
 
-interface CashierSummary {
+function formatTime(iso: string): string {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit", timeZone: "America/Montreal" });
+  } catch {
+    return "";
+  }
+}
+
+interface TaskDetail {
+  label: string;
+  section: string;
+  done: boolean;
+  count: number;
+  interval: string;
+  times: string[];
+}
+
+interface PersonSummary {
   name: string;
   role: string;
   completed: number;
   total: number;
   pct: number;
-  duringStats: Array<{ label: string; count: number; interval: string }>;
+  sections: Array<{
+    key: string;
+    label: string;
+    icon: string;
+    tasks: TaskDetail[];
+    doneCount: number;
+    totalCount: number;
+  }>;
+  notes: string | null;
   cashRec: {
     cashCounted: number;
     interacCounted: number;
@@ -51,7 +87,6 @@ async function handle(request: Request) {
   if (!authorize(request)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
-
 
   const supabase = createAdminClient();
   const todayStart = getTodayStartUTC();
@@ -90,19 +125,18 @@ async function handle(request: Request) {
 
   const profileMap = new Map((profiles ?? []).map((p) => [p.id, p]));
 
-  const duringTasks = allTasks.filter((t: any) => t.section === "during");
   const cashierTasks = allTasks.filter((t: any) => t.target_role === "caissiere");
   const supervisorTasks = allTasks.filter((t: any) => t.target_role === "superviseur");
 
-  const summaries: CashierSummary[] = [];
+  const summaries: PersonSummary[] = [];
 
   for (const cl of allChecklists) {
     const profile = profileMap.get(cl.user_id);
     const isSupervisor = profile?.role === "superviseur" || profile?.role === "dev";
     const roleTasks = isSupervisor ? supervisorTasks : cashierTasks;
     const completedSet = new Set(cl.completed_items as string[]);
-    const completed = roleTasks.filter((t: any) => completedSet.has(t.task_key)).length;
-    const total = roleTasks.length;
+    const timestamps = (cl.completed_timestamps ?? {}) as Record<string, string | string[]>;
+
     const operatorName =
       cl.operator_name ||
       (profile?.first_name && profile?.last_name
@@ -110,24 +144,45 @@ async function handle(request: Request) {
         : profile?.display_name) ||
       "Inconnu";
 
-    const timestamps = (cl.completed_timestamps ?? {}) as Record<string, string | string[]>;
-    const duringStats: CashierSummary["duringStats"] = [];
+    const sections = SECTION_ORDER.map((secKey) => {
+      const sectionTasks = roleTasks.filter((t: any) => t.section === secKey);
+      if (sectionTasks.length === 0) return null;
+      const meta = SECTION_META[secKey] ?? { label: secKey, icon: "📋" };
 
-    for (const task of duringTasks) {
-      if (!roleTasks.some((t: any) => t.task_key === task.task_key)) continue;
-      const ts = timestamps[task.task_key];
-      const count = Array.isArray(ts) ? ts.length : ts ? 1 : 0;
-      if (count > 0) {
-        duringStats.push({
-          label: task.label,
+      const taskDetails: TaskDetail[] = sectionTasks.map((t: any) => {
+        const ts = timestamps[t.task_key];
+        const isDuring = secKey === "during";
+        const timesArr = Array.isArray(ts) ? ts : ts ? [ts] : [];
+        const count = isDuring ? timesArr.length : (completedSet.has(t.task_key) ? 1 : 0);
+        const done = isDuring ? count > 0 : completedSet.has(t.task_key);
+
+        return {
+          label: t.label,
+          section: secKey,
+          done,
           count,
-          interval: hours ? formatInterval(hours.totalHours, count) : "",
-        });
-      }
-    }
+          interval: isDuring && hours && count > 0 ? formatInterval(hours.totalHours, count) : "",
+          times: timesArr.map((x: string) => formatTime(x)),
+        };
+      });
+
+      const doneCount = taskDetails.filter((t) => t.done).length;
+
+      return {
+        key: secKey,
+        label: meta.label,
+        icon: meta.icon,
+        tasks: taskDetails,
+        doneCount,
+        totalCount: taskDetails.length,
+      };
+    }).filter(Boolean) as PersonSummary["sections"];
+
+    const completed = sections.reduce((s, sec) => s + sec.doneCount, 0);
+    const total = sections.reduce((s, sec) => s + sec.totalCount, 0);
 
     const cr = allCashRecs.find((r: any) => r.operator_name === operatorName);
-    let cashRec: CashierSummary["cashRec"] = null;
+    let cashRec: PersonSummary["cashRec"] = null;
     if (cr) {
       const cc = cr.cash_counted ?? 0;
       const ic = cr.interac_counted ?? 0;
@@ -149,7 +204,8 @@ async function handle(request: Request) {
       completed,
       total,
       pct: total > 0 ? Math.round((completed / total) * 100) : 0,
-      duringStats,
+      sections,
+      notes: cl.notes ?? null,
       cashRec,
     });
   }
@@ -180,22 +236,40 @@ async function handle(request: Request) {
   return NextResponse.json({ ok: true, summaries: summaries.length, date: todayDate });
 }
 
-function buildText(date: string, hours: string, summaries: CashierSummary[]): string {
+function buildText(date: string, hours: string, summaries: PersonSummary[]): string {
+  const totalPersons = summaries.length;
+  const avgPct = totalPersons > 0 ? Math.round(summaries.reduce((s, p) => s + p.pct, 0) / totalPersons) : 0;
+
   let t = `Résumé quotidien — ${date}\n`;
   if (hours) t += `Heures: ${hours}\n`;
-  t += "\n";
+  t += `${totalPersons} employé(s) — moyenne: ${avgPct}%\n\n`;
 
   for (const s of summaries) {
-    t += `${s.name} (${s.role}) — ${s.completed}/${s.total} tâches (${s.pct}%)\n`;
-    for (const d of s.duringStats) {
-      t += `  - ${d.label}: ${d.count} fois ${d.interval}\n`;
+    t += `━━━ ${s.name} (${s.role}) — ${s.completed}/${s.total} (${s.pct}%) ━━━\n`;
+    for (const sec of s.sections) {
+      t += `\n  ${sec.icon} ${sec.label} (${sec.doneCount}/${sec.totalCount})\n`;
+      for (const task of sec.tasks) {
+        if (task.done) {
+          if (task.section === "during") {
+            t += `    ✓ ${task.label}: ${task.count} fois ${task.interval}\n`;
+            for (const time of task.times) t += `      → ${time}\n`;
+          } else {
+            t += `    ✓ ${task.label}${task.times[0] ? ` (${task.times[0]})` : ""}\n`;
+          }
+        } else {
+          t += `    ✗ ${task.label}\n`;
+        }
+      }
+    }
+    if (s.notes) {
+      t += `\n  📝 Notes de réunion:\n  ${s.notes}\n`;
     }
     if (s.cashRec) {
       const ok = s.cashRec.totalDiff === 0;
-      t += `  Clôture: ${ok ? "OK" : `Diff: ${s.cashRec.totalDiff >= 0 ? "+" : ""}${s.cashRec.totalDiff.toFixed(2)} $`}\n`;
+      t += `\n  💰 Clôture: ${ok ? "OK" : `Diff: ${s.cashRec.totalDiff >= 0 ? "+" : ""}${s.cashRec.totalDiff.toFixed(2)} $`}\n`;
       if (s.cashRec.explanation) t += `  Note: ${s.cashRec.explanation}\n`;
     } else if (s.role === "Caissière") {
-      t += `  Clôture: pas de clôture\n`;
+      t += `\n  💰 Pas de clôture\n`;
     }
     t += "\n";
   }
@@ -203,16 +277,20 @@ function buildText(date: string, hours: string, summaries: CashierSummary[]): st
   return t;
 }
 
-function buildHtml(date: string, hours: string, summaries: CashierSummary[]): string {
+function buildHtml(date: string, hours: string, summaries: PersonSummary[]): string {
   const cashiers = summaries.filter((s) => s.role === "Caissière");
   const supervisors = summaries.filter((s) => s.role === "Superviseur");
+  const totalPersons = summaries.length;
+  const avgPct = totalPersons > 0 ? Math.round(summaries.reduce((s, p) => s + p.pct, 0) / totalPersons) : 0;
+  const totalCompleted = summaries.reduce((s, p) => s + p.completed, 0);
+  const totalTasks = summaries.reduce((s, p) => s + p.total, 0);
 
   const pctColor = (pct: number) =>
     pct === 100 ? "#059669" : pct >= 70 ? "#d97706" : "#dc2626";
 
   const diffColor = (d: number) => (d === 0 ? "#059669" : "#dc2626");
 
-  function personBlock(s: CashierSummary): string {
+  function personBlock(s: PersonSummary): string {
     const badge =
       s.role === "Superviseur"
         ? `<span style="background:#ede9fe;color:#6d28d9;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600;">Superviseur</span>`
@@ -229,28 +307,58 @@ function buildHtml(date: string, hours: string, summaries: CashierSummary[]): st
             ${s.completed}/${s.total} (${s.pct}%)
           </span>
         </div>
-        <div style="background:#e5e5e5;border-radius:6px;height:6px;margin-bottom:12px;">
+        <div style="background:#e5e5e5;border-radius:6px;height:6px;margin-bottom:16px;">
           <div style="background:${pctColor(s.pct)};border-radius:6px;height:6px;width:${s.pct}%;"></div>
         </div>`;
 
-    if (s.duringStats.length > 0) {
-      html += `<p style="font-size:12px;font-weight:600;color:#737373;margin:0 0 4px;">Tâches récurrentes</p>`;
-      for (const d of s.duringStats) {
-        html += `<p style="font-size:13px;margin:2px 0;color:#404040;">
-          &bull; ${d.label}: <strong>${d.count} fois</strong>${d.interval ? ` <span style="color:#6b7280;">(${d.interval})</span>` : ""}
-        </p>`;
+    for (const sec of s.sections) {
+      const secPct = sec.totalCount > 0 ? Math.round((sec.doneCount / sec.totalCount) * 100) : 0;
+      html += `
+        <div style="margin-bottom:12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-size:12px;font-weight:700;color:#525252;">${sec.icon} ${sec.label}</span>
+            <span style="font-size:12px;font-weight:700;color:${pctColor(secPct)};">${sec.doneCount}/${sec.totalCount}</span>
+          </div>`;
+
+      for (const task of sec.tasks) {
+        if (task.done) {
+          if (task.section === "during") {
+            html += `
+              <div style="margin:4px 0 4px 12px;">
+                <span style="font-size:13px;color:#059669;font-weight:600;">✓ ${task.label}</span>
+                <span style="background:#d1fae5;color:#065f46;padding:1px 6px;border-radius:8px;font-size:11px;font-weight:700;margin-left:6px;">${task.count}x</span>
+                ${task.interval ? `<span style="font-size:11px;color:#6b7280;margin-left:4px;">(${task.interval})</span>` : ""}
+                <div style="margin-top:2px;padding-left:8px;">
+                  ${task.times.map((t) => `<span style="font-size:11px;color:#9ca3af;margin-right:8px;">→ ${t}</span>`).join("")}
+                </div>
+              </div>`;
+          } else {
+            html += `
+              <p style="font-size:13px;margin:3px 0 3px 12px;color:#059669;font-weight:600;">
+                ✓ ${task.label}
+                ${task.times[0] ? `<span style="font-weight:400;color:#9ca3af;margin-left:6px;">${task.times[0]}</span>` : ""}
+              </p>`;
+          }
+        } else {
+          html += `<p style="font-size:13px;margin:3px 0 3px 12px;color:#dc2626;font-weight:600;">✗ ${task.label}</p>`;
+        }
       }
+
+      html += `</div>`;
+    }
+
+    if (s.notes) {
+      html += `
+        <div style="margin-top:10px;padding:10px 12px;background:#f0fdf4;border-radius:8px;border-left:3px solid #059669;">
+          <p style="font-size:12px;font-weight:700;color:#065f46;margin:0 0 4px;">📝 Notes de réunion</p>
+          <p style="font-size:13px;color:#374151;margin:0;white-space:pre-wrap;">${s.notes}</p>
+        </div>`;
     }
 
     if (s.cashRec) {
-      const ok = s.cashRec.totalDiff === 0;
-      const diffStr = ok
-        ? `<span style="color:#059669;font-weight:700;">✓ OK</span>`
-        : `<span style="color:#dc2626;font-weight:700;">Diff: ${s.cashRec.totalDiff >= 0 ? "+" : ""}${s.cashRec.totalDiff.toFixed(2)} $</span>`;
-
       html += `
-        <div style="margin-top:10px;padding-top:10px;border-top:1px solid #e5e5e5;">
-          <p style="font-size:12px;font-weight:600;color:#737373;margin:0 0 6px;">Clôture de caisse</p>
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e5e5;">
+          <p style="font-size:12px;font-weight:700;color:#525252;margin:0 0 6px;">💰 Clôture de caisse</p>
           <table style="width:100%;font-size:12px;border-collapse:collapse;">
             <tr style="color:#737373;">
               <td></td><td style="text-align:right;padding:2px 6px;">Comptant</td><td style="text-align:right;padding:2px 6px;">Interac</td><td style="text-align:right;padding:2px 6px;">Total</td>
@@ -289,7 +397,21 @@ function buildHtml(date: string, hours: string, summaries: CashierSummary[]): st
       <div style="background:#f5f5f5;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
         <h1 style="margin:0;font-size:18px;">📊 Résumé quotidien</h1>
         <p style="margin:4px 0 0;font-size:14px;color:#525252;text-transform:capitalize;">${date}</p>
-        ${hours ? `<p style="margin:2px 0 0;font-size:13px;color:#737373;">Heures d'ouverture: ${hours}</p>` : ""}
+        ${hours ? `<p style="margin:2px 0 0;font-size:13px;color:#737373;">🕐 Heures d'ouverture: ${hours}</p>` : ""}
+        <div style="margin-top:10px;display:flex;gap:16px;">
+          <div style="background:white;border-radius:8px;padding:8px 12px;flex:1;text-align:center;">
+            <p style="margin:0;font-size:11px;color:#737373;">Employés</p>
+            <p style="margin:2px 0 0;font-size:18px;font-weight:700;">${totalPersons}</p>
+          </div>
+          <div style="background:white;border-radius:8px;padding:8px 12px;flex:1;text-align:center;">
+            <p style="margin:0;font-size:11px;color:#737373;">Tâches complétées</p>
+            <p style="margin:2px 0 0;font-size:18px;font-weight:700;">${totalCompleted}/${totalTasks}</p>
+          </div>
+          <div style="background:white;border-radius:8px;padding:8px 12px;flex:1;text-align:center;">
+            <p style="margin:0;font-size:11px;color:#737373;">Moyenne</p>
+            <p style="margin:2px 0 0;font-size:18px;font-weight:700;color:${pctColor(avgPct)};">${avgPct}%</p>
+          </div>
+        </div>
       </div>`;
 
   if (cashiers.length > 0) {
