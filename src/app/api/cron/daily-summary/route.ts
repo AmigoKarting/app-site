@@ -58,6 +58,17 @@ interface TaskDetail {
   times: string[];
 }
 
+interface SupervisorTaskEntry {
+  taskLabel: string;
+  doneBy: string | null;
+  rating: number | null;
+  comment: string | null;
+  noTimeToFinish: boolean;
+  qualityCertified: boolean;
+  assignedAt: string | null;
+  verifiedAt: string | null;
+}
+
 interface PersonSummary {
   name: string;
   role: string;
@@ -73,6 +84,7 @@ interface PersonSummary {
     totalCount: number;
   }>;
   notes: string | null;
+  supervisorAssignments: SupervisorTaskEntry[];
   cashRec: {
     cashCounted: number;
     interacCounted: number;
@@ -93,7 +105,7 @@ async function handle(request: Request) {
   const todayDate = getTodayDateString();
   const hours = getTodayOpenHours();
 
-  const [{ data: checklists }, { data: tasks }, { data: cashRecs }] = await Promise.all([
+  const [{ data: checklists }, { data: tasks }, { data: cashRecs }, { data: supDailyTasks }, { data: supTasks }] = await Promise.all([
     (supabase as any)
       .from("cashier_checklists")
       .select("id, user_id, completed_items, completed_timestamps, operator_name, total_items, submitted_at, notes")
@@ -107,11 +119,25 @@ async function handle(request: Request) {
       .from("cash_reconciliations")
       .select("*")
       .eq("date", todayDate),
+    (supabase as any)
+      .from("supervisor_daily_tasks")
+      .select("id, task_id, supervisor_id, supervisor_name, done_by, rating, comment, no_time_to_finish, quality_certified, assigned_at, verified_at")
+      .eq("date", todayDate),
+    (supabase as any)
+      .from("supervisor_tasks")
+      .select("id, label, section")
+      .eq("is_active", true),
   ]);
 
   const allChecklists = (checklists ?? []) as any[];
   const allTasks = (tasks ?? []) as any[];
   const allCashRecs = (cashRecs ?? []) as any[];
+  const allSupDailyTasks = (supDailyTasks ?? []) as any[];
+  const allSupTasks = (supTasks ?? []) as any[];
+
+  const supTaskMap = new Map<string, string>(
+    allSupTasks.map((t: any) => [t.id, t.label]),
+  );
 
   if (allChecklists.length === 0) {
     return NextResponse.json({ ok: true, skipped: true, reason: "no checklists today" });
@@ -198,6 +224,19 @@ async function handle(request: Request) {
       };
     }
 
+    const supervisorAssignments: SupervisorTaskEntry[] = allSupDailyTasks
+      .filter((sdt: any) => sdt.supervisor_id === cl.user_id)
+      .map((sdt: any) => ({
+        taskLabel: supTaskMap.get(sdt.task_id) ?? "—",
+        doneBy: sdt.done_by ?? null,
+        rating: sdt.rating ?? null,
+        comment: sdt.comment ?? null,
+        noTimeToFinish: sdt.no_time_to_finish ?? false,
+        qualityCertified: sdt.quality_certified ?? false,
+        assignedAt: sdt.assigned_at ?? null,
+        verifiedAt: sdt.verified_at ?? null,
+      }));
+
     summaries.push({
       name: operatorName,
       role: isSupervisor ? "Superviseur" : "Caissière",
@@ -206,6 +245,7 @@ async function handle(request: Request) {
       pct: total > 0 ? Math.round((completed / total) * 100) : 0,
       sections,
       notes: cl.notes ?? null,
+      supervisorAssignments,
       cashRec,
     });
   }
@@ -258,6 +298,21 @@ function buildText(date: string, hours: string, summaries: PersonSummary[]): str
           }
         } else {
           t += `    ✗ ${task.label}\n`;
+        }
+      }
+    }
+    if (s.supervisorAssignments.length > 0) {
+      t += `\n  📋 Tâches assignées par le superviseur (${s.supervisorAssignments.length})\n`;
+      for (const sa of s.supervisorAssignments) {
+        if (sa.verifiedAt) {
+          const stars = sa.rating ? "★".repeat(sa.rating) + "☆".repeat(5 - sa.rating) : "";
+          t += `    ✓ ${sa.taskLabel} — fait par ${sa.doneBy ?? "?"} ${stars}\n`;
+          if (sa.comment) t += `      💬 ${sa.comment}\n`;
+          if (sa.qualityCertified) t += `      ✅ Qualité certifiée\n`;
+        } else if (sa.noTimeToFinish) {
+          t += `    ⏳ ${sa.taskLabel} — pas eu le temps\n`;
+        } else if (sa.assignedAt) {
+          t += `    ⏳ ${sa.taskLabel} — assignée, pas encore vérifiée\n`;
         }
       }
     }
@@ -344,6 +399,42 @@ function buildHtml(date: string, hours: string, summaries: PersonSummary[]): str
         }
       }
 
+      html += `</div>`;
+    }
+
+    if (s.supervisorAssignments.length > 0) {
+      html += `
+        <div style="margin-top:12px;padding-top:12px;border-top:1px solid #e5e5e5;">
+          <p style="font-size:12px;font-weight:700;color:#525252;margin:0 0 8px;">📋 Tâches assignées (${s.supervisorAssignments.length})</p>`;
+      for (const sa of s.supervisorAssignments) {
+        if (sa.verifiedAt) {
+          const stars = sa.rating
+            ? Array.from({ length: 5 }, (_, i) => i < sa.rating! ? "★" : "☆").join("")
+            : "";
+          const ratingColor = sa.rating && sa.rating >= 4 ? "#059669" : sa.rating && sa.rating >= 3 ? "#d97706" : "#dc2626";
+          html += `
+            <div style="margin:6px 0 6px 12px;padding:8px 10px;background:#f9fafb;border-radius:8px;border-left:3px solid #059669;">
+              <p style="font-size:13px;font-weight:600;color:#059669;margin:0;">✓ ${sa.taskLabel}</p>
+              <p style="font-size:12px;color:#525252;margin:3px 0 0;">Fait par: <strong>${sa.doneBy ?? "?"}</strong></p>
+              ${stars ? `<p style="font-size:14px;color:${ratingColor};margin:2px 0 0;letter-spacing:2px;">${stars}</p>` : ""}
+              ${sa.comment ? `<p style="font-size:12px;color:#6b7280;margin:3px 0 0;font-style:italic;">💬 ${sa.comment}</p>` : ""}
+              ${sa.qualityCertified ? `<p style="font-size:11px;color:#059669;margin:2px 0 0;">✅ Qualité certifiée</p>` : ""}
+            </div>`;
+        } else if (sa.noTimeToFinish) {
+          html += `
+            <div style="margin:6px 0 6px 12px;padding:8px 10px;background:#fef3c7;border-radius:8px;border-left:3px solid #d97706;">
+              <p style="font-size:13px;font-weight:600;color:#92400e;margin:0;">⏳ ${sa.taskLabel}</p>
+              <p style="font-size:12px;color:#92400e;margin:3px 0 0;">Pas eu le temps de finir</p>
+              ${sa.comment ? `<p style="font-size:12px;color:#6b7280;margin:3px 0 0;font-style:italic;">💬 ${sa.comment}</p>` : ""}
+            </div>`;
+        } else if (sa.assignedAt) {
+          html += `
+            <div style="margin:6px 0 6px 12px;padding:8px 10px;background:#fef2f2;border-radius:8px;border-left:3px solid #dc2626;">
+              <p style="font-size:13px;font-weight:600;color:#dc2626;margin:0;">⏳ ${sa.taskLabel}</p>
+              <p style="font-size:12px;color:#991b1b;margin:3px 0 0;">Assignée mais pas vérifiée</p>
+            </div>`;
+        }
+      }
       html += `</div>`;
     }
 
