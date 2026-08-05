@@ -14,4 +14,4 @@ jobs:
         run: |
           curl -sf -X POST \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
-            https://app-notification.vercel.app/api/cron/run-schedules
+            https://notification-three-pi.vercel.app/api/cron/run-schedules
