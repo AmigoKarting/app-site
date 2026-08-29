@@ -23,7 +23,7 @@ function ToggleButton({ muted }: { muted: boolean }) {
     <button
       type="submit"
       disabled={pending}
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition disabled:opacity-50 ${
+      className={`inline-flex min-h-[36px] items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-medium ring-1 ring-inset transition disabled:opacity-50 ${
         muted
           ? "bg-neutral-100 text-neutral-700 ring-neutral-200 hover:bg-neutral-200"
           : "bg-emerald-50 text-emerald-700 ring-emerald-200 hover:bg-emerald-100"

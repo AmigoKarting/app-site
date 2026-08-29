@@ -73,7 +73,7 @@ export default async function EmployeesPage({ searchParams }: PageProps) {
         />
       ) : (
         <>
-        <Card>
+        <Card className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400">
               <tr>

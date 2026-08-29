@@ -35,7 +35,7 @@ export default async function AdminSessionsPage({ searchParams }: PageProps) {
           action={<LinkButton href="/admin/sessions/new">{t.adminSessions.newSession}</LinkButton>}
         />
       ) : (
-        <Card>
+        <Card className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
               <tr>

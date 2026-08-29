@@ -50,7 +50,7 @@ export default async function AdminSchedulesPage() {
           action={<LinkButton href="/admin/schedules/new">{t.adminSchedules.createSchedule}</LinkButton>}
         />
       ) : (
-        <Card>
+        <Card className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
               <tr>

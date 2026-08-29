@@ -129,7 +129,7 @@ export default async function AdminDeliveriesPage({ searchParams }: PageProps) {
         <EmptyState title={t.adminDeliveries.noDeliveries} description={t.adminDeliveries.noDeliveriesDesc} />
       ) : (
         <>
-        <Card>
+        <Card className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500">
               <tr>

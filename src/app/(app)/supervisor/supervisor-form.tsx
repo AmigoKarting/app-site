@@ -201,31 +201,33 @@ export function SupervisorForm({
                       )}
                     </div>
 
-                    {/* À faire checkbox */}
-                    <div className="flex justify-center">
+                    {/* À faire checkbox — le label agrandit la zone tactile (tablette). */}
+                    <label className="flex cursor-pointer justify-center rounded-lg p-2.5">
                       <input
                         type="checkbox"
                         checked={state.assigned}
                         disabled={isLoading || state.verified || !selectedSupervisor}
                         onChange={(e) => handleAssign(task.id, e.target.checked)}
-                        className="h-5 w-5 cursor-pointer rounded border-neutral-300 text-amber-600 transition focus:ring-amber-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700"
+                        className="h-6 w-6 cursor-pointer rounded border-neutral-300 text-amber-600 transition focus:ring-amber-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700"
                       />
-                    </div>
+                    </label>
 
                     {/* Vérifié checkbox */}
                     <div className="flex justify-center">
                       {state.verified ? (
-                        <svg className="h-5 w-5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <svg className="h-6 w-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       ) : (
-                        <input
-                          type="checkbox"
-                          checked={false}
-                          disabled={!state.assigned || isLoading || !selectedSupervisor}
-                          onChange={() => handleVerifyClick(task.id)}
-                          className="h-5 w-5 cursor-pointer rounded border-neutral-300 text-emerald-600 transition focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700"
-                        />
+                        <label className="flex cursor-pointer justify-center rounded-lg p-2.5">
+                          <input
+                            type="checkbox"
+                            checked={false}
+                            disabled={!state.assigned || isLoading || !selectedSupervisor}
+                            onChange={() => handleVerifyClick(task.id)}
+                            className="h-6 w-6 cursor-pointer rounded border-neutral-300 text-emerald-600 transition focus:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-neutral-600 dark:bg-neutral-700"
+                          />
+                        </label>
                       )}
                     </div>
                   </div>

@@ -87,7 +87,7 @@ export default async function RemindersPage({ searchParams }: PageProps) {
         )}
       </form>
 
-      <div className="flex gap-2 text-sm">
+      <div className="flex flex-wrap gap-2 text-sm">
         <FilterLink href="/admin/reminders" active={!status} label={t.reminders.all} />
         <FilterLink href="/admin/reminders?status=pending" active={status === "pending"} label={t.reminders.pending} />
         <FilterLink href="/admin/reminders?status=sent" active={status === "sent"} label={t.reminders.sent} />
@@ -111,7 +111,7 @@ export default async function RemindersPage({ searchParams }: PageProps) {
         />
       ) : (
         <>
-        <Card>
+        <Card className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-neutral-50 text-left text-xs uppercase tracking-wide text-neutral-500 dark:bg-neutral-800/50 dark:text-neutral-400">
               <tr>

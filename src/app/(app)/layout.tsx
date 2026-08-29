@@ -89,7 +89,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               className="mr-3 flex items-center gap-2 font-semibold tracking-tight"
             >
               <AppLogo size={28} />
-              <span className="hidden sm:inline dark:text-neutral-100">{branding.app_name}</span>
+              {/* Caché entre md et lg : les liens de nav desktop prennent la place. */}
+              <span className="hidden sm:inline md:hidden lg:inline dark:text-neutral-100">{branding.app_name}</span>
             </Link>
 
             <DesktopNavLinks role={profile?.role ?? "superviseur"} />
@@ -128,15 +129,36 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-xs font-semibold text-white shadow-sm">
                 {displayLabel.slice(0, 1).toUpperCase()}
               </span>
-              <span className="hidden font-medium md:inline">{displayLabel}</span>
+              <span className="hidden font-medium lg:inline">{displayLabel}</span>
             </Link>
             {profile && isDev && (
-              <span className="hidden rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-200 md:inline dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-700">
+              <span className="hidden rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-200 lg:inline dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-700">
                 {profile.role}
               </span>
             )}
             <form action={logoutAction}>
-              <button className="hidden rounded-lg border border-neutral-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:border-neutral-300 hover:bg-neutral-50 md:inline-flex dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-600 dark:hover:bg-neutral-700">
+              {/* md à lg : icône seule, l'espace manque à côté des liens de nav. */}
+              <button
+                title={t.auth.logout}
+                aria-label={t.auth.logout}
+                className="hidden h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition hover:border-neutral-300 hover:bg-neutral-50 md:flex lg:hidden dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:border-neutral-600 dark:hover:bg-neutral-700"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </button>
+              <button className="hidden rounded-lg border border-neutral-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:border-neutral-300 hover:bg-neutral-50 lg:inline-flex dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-600 dark:hover:bg-neutral-700">
                 {t.auth.logout}
               </button>
             </form>
