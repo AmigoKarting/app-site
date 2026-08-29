@@ -15,6 +15,20 @@ function clean(v: string | undefined): string {
 const SUPABASE_URL = clean(process.env.NEXT_PUBLIC_SUPABASE_URL);
 const SUPABASE_ANON_KEY = clean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
 
+// Si Supabase Auth ne répond pas (lenteur, rate limit), on abandonne la
+// vérification plutôt que de bloquer la requête jusqu'au timeout Vercel
+// de 25s (504 MIDDLEWARE_INVOCATION_TIMEOUT pour tout le monde).
+const AUTH_CHECK_TIMEOUT_MS = 5000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`auth check timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
+
 /**
  * Refresh la session Supabase à chaque requête (cookies HTTP-only) ET
  * applique les redirections d'accès. Doit être branché dans
@@ -58,7 +72,7 @@ export async function updateSession(request: NextRequest) {
 
     const {
       data: { user },
-    } = await supabase.auth.getUser();
+    } = await withTimeout(supabase.auth.getUser(), AUTH_CHECK_TIMEOUT_MS);
 
     const { pathname, search } = request.nextUrl;
     const isProtected = PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
