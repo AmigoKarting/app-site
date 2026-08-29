@@ -31,7 +31,11 @@ export function DesktopNavLinks({ role }: DesktopNavLinksProps) {
         <NavLink href="/supervisor" label={t.supervisor.navTitle} active={pathname === "/supervisor"} />
       )}
       {isDev && (
-        <NavLink href="/supervisor-history" label={t.checklist.historyShort} active={pathname === "/supervisor-history"} />
+        <NavLink
+          href="/supervisor-history"
+          label={t.checklist.historyShort}
+          active={["/supervisor-history", "/checklist-history", "/cloture-history"].includes(pathname)}
+        />
       )}
       {isDev && (
         <Link

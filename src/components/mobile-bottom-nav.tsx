@@ -41,7 +41,8 @@ export function MobileBottomNav({ role }: MobileBottomNavProps) {
     href: "/supervisor-history",
     label: t.checklist.historyShort,
     icon: HistorySvg,
-    active: pathname === "/supervisor-history",
+    // Les trois pages d'historique sont des onglets d'une même section.
+    active: ["/supervisor-history", "/checklist-history", "/cloture-history"].includes(pathname),
   };
 
   // Caissière → Checklist d'abord (page d'accueil). Dev → accès aussi (test admin).
@@ -49,7 +50,7 @@ export function MobileBottomNav({ role }: MobileBottomNavProps) {
     ...(isCashier
       ? [checklistTab]
       : isDev
-        ? [feedTab, checklistTab]
+        ? [feedTab, checklistTab, historyTab]
         : isGerant
           ? [feedTab, checklistTab, supervisorTab]
           : [feedTab]),
