@@ -70,9 +70,15 @@ export async function updateSession(request: NextRequest) {
       },
     );
 
+    // getSession() lit le JWT depuis le cookie (0 appel réseau, sauf refresh
+    // à l'expiration ~1x/heure). getUser() interrogeait Supabase Auth à CHAQUE
+    // requête : dépassement de la limite de requêtes → retries internes → 504.
+    // La vraie vérification d'identité reste dans les gardes côté page (RLS +
+    // requireUser), le middleware ne fait que des redirections de confort.
     const {
-      data: { user },
-    } = await withTimeout(supabase.auth.getUser(), AUTH_CHECK_TIMEOUT_MS);
+      data: { session },
+    } = await withTimeout(supabase.auth.getSession(), AUTH_CHECK_TIMEOUT_MS);
+    const user = session?.user ?? null;
 
     const { pathname, search } = request.nextUrl;
     const isProtected = PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));

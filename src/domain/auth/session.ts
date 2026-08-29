@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
@@ -11,14 +12,18 @@ import { createClient } from "@/lib/supabase/server";
  * Important: utilise getUser() (et non getSession()) côté serveur car
  * getUser() revalide le JWT auprès du serveur Supabase, contrairement
  * à getSession() qui se contente de lire le cookie (manipulable).
+ *
+ * cache() déduplique l'appel réseau au sein d'un même rendu : layout,
+ * gardes et page partagent le résultat au lieu de frapper Supabase Auth
+ * 3-5 fois par page (ce qui faisait sauter la limite de requêtes).
  */
-export async function getCurrentUser(): Promise<User | null> {
+export const getCurrentUser = cache(async (): Promise<User | null> => {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
   return user;
-}
+});
 
 /**
  * Garde de page protégée. À appeler en haut d'un Server Component
