@@ -118,8 +118,8 @@ const en: Dictionary = {
     read: "✓ Read",
     markAsRead: "Mark as read",
     markAsUnread: "Mark as unread",
-    muted: "🔕 Muted",
-    received: "🔔 Active",
+    muted: "Muted",
+    received: "Active",
     searchPlaceholder: "Search notifications...",
     noSearchResults: "No notifications match your search.",
     pullToRefresh: "Pull to refresh",
@@ -539,7 +539,7 @@ const en: Dictionary = {
   },
 
   formatting: {
-    title: "💡 Formatting and available variables",
+    title: "Formatting and available variables",
     markdown: "Markdown",
     bold: "bold",
     italic: "italic",

@@ -116,8 +116,8 @@ const fr = {
     read: "✓ Lu",
     markAsRead: "Marquer comme lu",
     markAsUnread: "Marquer comme non lu",
-    muted: "🔕 Masquée",
-    received: "🔔 Reçue",
+    muted: "Masquée",
+    received: "Active",
     searchPlaceholder: "Rechercher dans les notifications...",
     noSearchResults: "Aucune notification ne correspond à votre recherche.",
     pullToRefresh: "Tire pour actualiser",
@@ -537,7 +537,7 @@ const fr = {
   },
 
   formatting: {
-    title: "💡 Mise en forme et variables disponibles",
+    title: "Mise en forme et variables disponibles",
     markdown: "Markdown",
     bold: "gras",
     italic: "italique",

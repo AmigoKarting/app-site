@@ -9,7 +9,7 @@ export function LanguageToggle() {
     <button
       type="button"
       onClick={() => setLocale(locale === "fr" ? "en" : "fr")}
-      className="flex h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-xs font-semibold text-neutral-600 transition hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-900 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:border-neutral-600 dark:hover:bg-neutral-700 dark:hover:text-neutral-100"
+      className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-xs font-semibold text-neutral-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white"
       title={locale === "fr" ? "Switch to English" : "Passer en français"}
     >
       {locale === "fr" ? "EN" : "FR"}

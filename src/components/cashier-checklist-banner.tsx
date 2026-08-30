@@ -33,7 +33,11 @@ export function CashierChecklistBanner({
     <div className="border-b border-amber-200 bg-amber-50 dark:border-amber-800/60 dark:bg-amber-900/20">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
         <p className="flex items-center gap-2 text-sm font-medium text-amber-900 dark:text-amber-200">
-          <span className="text-base">📋</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+            <path d="m9 14 2 2 4-4" />
+          </svg>
           <span>{message}</span>
         </p>
         <Link

@@ -81,7 +81,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen bg-app-gradient">
-      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/85 shadow-[0_1px_3px_rgba(0,0,0,0.04)] backdrop-blur-md transition-colors duration-300 dark:border-neutral-700/50 dark:bg-neutral-900/85 dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]">
+      {/* Barre sombre dans les deux thèmes — look "outil pro" (style Shopify admin). */}
+      <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-900/95 shadow-[0_1px_10px_rgba(0,0,0,0.25)] backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6">
           <nav className="flex items-center gap-1 text-sm">
             <Link
@@ -90,7 +91,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             >
               <AppLogo size={28} />
               {/* Caché entre md et lg : les liens de nav desktop prennent la place. */}
-              <span className="hidden sm:inline md:hidden lg:inline dark:text-neutral-100">{branding.app_name}</span>
+              <span className="hidden text-white sm:inline md:hidden lg:inline">{branding.app_name}</span>
             </Link>
 
             <DesktopNavLinks role={profile?.role ?? "superviseur"} />
@@ -102,7 +103,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <Link
                 href="/admin/aide"
                 title={t.nav.helpTooltip}
-                className="hidden h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition hover:border-neutral-300 hover:bg-neutral-50 hover:text-brand-700 md:flex dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:border-neutral-600 dark:hover:bg-neutral-700 dark:hover:text-brand-400"
+                className="hidden h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-neutral-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white md:flex"
                 aria-label={t.nav.help}
               >
                 <svg
@@ -123,7 +124,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             )}
             <Link
               href="/settings"
-              className="flex items-center gap-2 rounded-lg px-2 py-1 text-neutral-700 transition hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-300 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+              className="flex items-center gap-2 rounded-lg px-2 py-1 text-neutral-300 transition hover:bg-white/10 hover:text-white"
               title={user.email ?? undefined}
             >
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-xs font-semibold text-white shadow-sm">
@@ -132,7 +133,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <span className="hidden font-medium lg:inline">{displayLabel}</span>
             </Link>
             {profile && isDev && (
-              <span className="hidden rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700 ring-1 ring-inset ring-brand-200 lg:inline dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-700">
+              <span className="hidden rounded-full bg-brand-500/15 px-2 py-0.5 text-xs font-medium text-brand-300 ring-1 ring-inset ring-brand-500/30 lg:inline">
                 {profile.role}
               </span>
             )}
@@ -141,7 +142,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               <button
                 title={t.auth.logout}
                 aria-label={t.auth.logout}
-                className="hidden h-9 w-9 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-600 transition hover:border-neutral-300 hover:bg-neutral-50 md:flex lg:hidden dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400 dark:hover:border-neutral-600 dark:hover:bg-neutral-700"
+                className="hidden h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-neutral-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white md:flex lg:hidden"
               >
                 <svg
                   width="18"
@@ -158,7 +159,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
                   <line x1="21" y1="12" x2="9" y2="12" />
                 </svg>
               </button>
-              <button className="hidden rounded-lg border border-neutral-200 bg-white px-3 py-1.5 font-medium text-neutral-700 transition hover:border-neutral-300 hover:bg-neutral-50 lg:inline-flex dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-600 dark:hover:bg-neutral-700">
+              <button className="hidden rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 font-medium text-neutral-300 transition hover:border-white/20 hover:bg-white/10 hover:text-white lg:inline-flex">
                 {t.auth.logout}
               </button>
             </form>

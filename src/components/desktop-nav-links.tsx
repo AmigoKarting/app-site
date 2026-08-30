@@ -42,8 +42,8 @@ export function DesktopNavLinks({ role }: DesktopNavLinksProps) {
           href="/admin"
           className={`ml-2 inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-sm font-medium ring-1 transition ${
             pathname.startsWith("/admin")
-              ? "bg-brand-100 text-brand-800 ring-brand-300 dark:bg-brand-900/50 dark:text-brand-200 dark:ring-brand-600"
-              : "bg-brand-50 text-brand-700 ring-brand-200 hover:bg-brand-100 hover:text-brand-800 dark:bg-brand-900/30 dark:text-brand-300 dark:ring-brand-700 dark:hover:bg-brand-900/50"
+              ? "bg-brand-500/25 text-brand-200 ring-brand-400/50"
+              : "bg-white/5 text-brand-300 ring-white/15 hover:bg-brand-500/20 hover:text-brand-200"
           }`}
         >
           {t.nav.admin}
@@ -59,13 +59,13 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
       href={href}
       className={`relative rounded-md px-3 py-1.5 transition ${
         active
-          ? "font-medium text-brand-700 dark:text-brand-300"
-          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900 dark:text-neutral-400 dark:hover:bg-neutral-800 dark:hover:text-neutral-100"
+          ? "font-medium text-brand-300"
+          : "text-neutral-300 hover:bg-white/10 hover:text-white"
       }`}
     >
       {label}
       {active && (
-        <span className="absolute inset-x-1 -bottom-[13px] h-0.5 rounded-full bg-brand-500" />
+        <span className="absolute inset-x-1 -bottom-[13px] h-0.5 rounded-full bg-brand-400" />
       )}
     </Link>
   );

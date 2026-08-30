@@ -438,10 +438,8 @@ button:not(:disabled):active,
   transform: scale(0.90);
 }
 
+/* La barre du bas est sombre dans les deux thèmes : accent doré clair. */
 .mobile-nav-item--active {
-  color: rgb(var(--brand-600));
-}
-.dark .mobile-nav-item--active {
   color: rgb(var(--brand-400));
 }
 

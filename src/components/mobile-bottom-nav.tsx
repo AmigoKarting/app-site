@@ -73,16 +73,14 @@ export function MobileBottomNav({ role }: MobileBottomNavProps) {
   ];
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-neutral-200 bg-white/95 backdrop-blur-md md:hidden dark:border-neutral-700/50 dark:bg-neutral-900/95">
+    <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-neutral-900/95 backdrop-blur-md md:hidden">
       <ul className="mx-auto flex max-w-md items-stretch justify-around">
         {tabs.map((tab) => (
           <li key={tab.href} className="flex-1">
             <Link
               href={tab.href}
               className={`mobile-nav-item ${
-                tab.active
-                  ? "mobile-nav-item--active"
-                  : "text-neutral-400 dark:text-neutral-500"
+                tab.active ? "mobile-nav-item--active" : "text-neutral-400"
               }`}
             >
               <span className="mobile-nav-icon">
