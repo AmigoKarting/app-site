@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import { ThemeInitScript, ThemeProvider } from "@/components/theme-provider";
 import { ToastProvider } from "@/components/toast";
 import { NavProgress } from "@/components/nav-progress";
@@ -17,11 +18,17 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const locale = getLocale();
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={inter.variable}>
       <head>
         <ThemeInitScript />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />

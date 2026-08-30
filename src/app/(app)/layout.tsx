@@ -80,8 +80,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/85 backdrop-blur-md transition-colors duration-300 dark:border-neutral-700/50 dark:bg-neutral-900/85">
+    <div className="min-h-screen bg-app-gradient">
+      <header className="sticky top-0 z-30 border-b border-neutral-200 bg-white/85 shadow-[0_1px_3px_rgba(0,0,0,0.04)] backdrop-blur-md transition-colors duration-300 dark:border-neutral-700/50 dark:bg-neutral-900/85 dark:shadow-[0_1px_3px_rgba(0,0,0,0.3)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-4 py-3 sm:gap-4 sm:px-6">
           <nav className="flex items-center gap-1 text-sm">
             <Link

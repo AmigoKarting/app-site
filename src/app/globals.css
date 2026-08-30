@@ -68,11 +68,33 @@ html, body {
 }
 
 body {
-  font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-inter), "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   background-color: var(--surface-1);
   color: var(--surface-text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Titres : légèrement resserrés, comme les interfaces SaaS modernes. */
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+/* Chiffres à largeur fixe dans les tableaux : les montants s'alignent. */
+table {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Anneau de focus clavier visible partout (accessibilité + finition). */
+:focus-visible {
+  outline: 2px solid rgb(var(--brand-500));
+  outline-offset: 2px;
+}
+
+/* Sélection de texte aux couleurs de la marque (light). */
+::selection {
+  background-color: rgb(var(--brand-200));
+  color: #171717;
 }
 
 .dark body {

@@ -24,7 +24,7 @@ export function Button({ variant = "primary", className = "", ...rest }: ButtonP
   return (
     <button
       {...rest}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant]} ${className}`}
+      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50 ${buttonVariants[variant]} ${className}`}
     />
   );
 }
@@ -38,7 +38,7 @@ export function LinkButton({ variant = "primary", className = "", ...rest }: Lin
   return (
     <Link
       {...rest}
-      className={`inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 ${buttonVariants[variant]} ${className}`}
+      className={`tap-feedback inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/60 focus-visible:ring-offset-1 ${buttonVariants[variant]} ${className}`}
     />
   );
 }
@@ -139,7 +139,7 @@ export function PageHeader({
     <header className="flex flex-wrap items-end justify-between gap-4 animate-fade-in">
       <div>
         <div className="flex items-center gap-2">
-          <h1 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-neutral-50">{title}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-neutral-50">{title}</h1>
           {helpHref && (
             <a
               href={helpHref}
